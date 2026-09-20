@@ -1,0 +1,5 @@
+# keep the scripts byte-exact as tested (no EOL conversion on checkout or commit)
+*.ps1 -text
+*.cmd -text
+report.ja.txt -text
+*.md text eol=lf

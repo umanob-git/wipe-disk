@@ -1,0 +1,6 @@
+# run logs and certificates contain machine/user paths and drive serials
+logs/
+*.log
+# optional smartctl.exe dropped next to the scripts
+bin/
+Thumbs.db
