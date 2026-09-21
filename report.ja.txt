@@ -54,7 +54,7 @@ Windows 上の識別  : ディスク番号 {{DiskNumber}}、Windows 報告型番
 実施場所          : ______________________（手書き）
 連絡先            : ______________________（手書き）
 実施 PC           : {{ComputerName}}（{{OsCaption}} build {{OsBuild}}）
-使用ツール        : Wipe-Disk.ps1 {{ToolVersion}}（C:\project\disk_formatter）
+使用ツール        : Wipe-Disk.ps1 {{ToolVersion}}（C:\projects\disk_formatter）
                     Microsoft DiskPart {{DiskpartVersion}}
                     シリアル取得: {{IdentityTool}}
 実行ログ          : {{LogPath}}
