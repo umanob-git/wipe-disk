@@ -1,4 +1,4 @@
-# wipe-disk — zero-fill a USB-docked HDD before disposal, read it all back, get a certificate
+# wipe-disk: zero-fill a USB-docked HDD before disposal, read it all back, get a certificate
 
 [日本語 README](README.ja.md)
 
@@ -105,7 +105,7 @@ performed and what the read-back found.
 
 - **The `SerialNumber` Windows reports for a USB-docked drive is the dock's bridge serial, not the drive's.** Another drive in
   the same dock shows the same value. Identify the drive by model and size, and re-check the disk number in the dry run each
-  time — numbers change when drives are plugged in or out.
+  time. Numbers change when drives are plugged in or out.
 - `logs\wipe-disk<N>-<timestamp>.log` keeps the target, the destroyed partitions, DiskPart's output, timings and the
   verification result. Keep it with the certificate.
 - One certificate per run. Splitting overwrite and verification into two runs produces a *verify-only* certificate, so run
@@ -142,11 +142,11 @@ Optional: smartmontools for the drive's own serial.
   gains "Select" and the process blocks on its next write, so the last progress line just sits there (2026-09-22:
   a full verify stood still at 0% for six minutes). Press Esc to resume, and turn QuickEdit Mode off in the
   window's properties before starting a long run.
-- Never put `(` or `)` inside an `echo` within an `if ( ... )` block in the `.cmd` — `)` closes the block and the following
-  lines run unconditionally.
+- Never put `(` or `)` inside an `echo` within an `if ( ... )` block in the `.cmd`. The `)` closes the block and the
+  following lines run unconditionally.
 - Wrap divisions in parentheses inside `-f` arguments: `"{2}" -f $a, $b / 1GB, $c` binds `,` tighter than `/`, so `-f`
   receives two arguments and fails at run time.
-- In a `.cmd`, `if <cond> set "X=1" & goto :eof` runs the `goto` even when the condition is false — `&` splits
+- In a `.cmd`, `if <cond> set "X=1" & goto :eof` runs the `goto` even when the condition is false. The `&` splits
   commands before the `if` is evaluated. Put the body in parentheses, one block per test.
 - Hex literals like `0x80000000` become negative int32; write `[uint32]2147483648`.
 - **Dot-sourcing runs the other script's `param()` block in the caller's scope.** `. .\Get-DriveIdentity.ps1` reset the
@@ -160,4 +160,4 @@ Optional: smartmontools for the drive's own serial.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Use at your own risk: this tool destroys data by design.
+MIT, see [LICENSE](LICENSE). Use at your own risk: this tool destroys data by design.
