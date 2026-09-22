@@ -138,6 +138,10 @@ Optional: smartmontools for the drive's own serial.
 
 ## Maintenance notes (things that actually broke)
 
+- **QuickEdit Mode (on by default) freezes the run the moment you click inside the console window.** The title bar
+  gains "Select" and the process blocks on its next write, so the last progress line just sits there (2026-09-22:
+  a full verify stood still at 0% for six minutes). Press Esc to resume, and turn QuickEdit Mode off in the
+  window's properties before starting a long run.
 - Never put `(` or `)` inside an `echo` within an `if ( ... )` block in the `.cmd` — `)` closes the block and the following
   lines run unconditionally.
 - Wrap divisions in parentheses inside `-f` arguments: `"{2}" -f $a, $b / 1GB, $c` binds `,` tighter than `/`, so `-f`
