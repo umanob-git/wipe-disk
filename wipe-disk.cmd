@@ -9,7 +9,7 @@ rem
 rem   wipe-disk.cmd                      interactive (full verify)
 rem   wipe-disk.cmd 3                    disk 3 preselected
 rem   wipe-disk.cmd 3 ST500DM002         also require the model to contain ST500DM002
-rem   flags (after the disk number):
+rem   flags (any position):
 rem     /quick        sampled verify instead of every sector
 rem     /dryrun       show what would happen, write nothing
 rem     /verifyonly   read back only, write nothing
@@ -36,14 +36,18 @@ if errorlevel 1 (
 )
 
 rem ---- parse arguments ----
-set "DISK=%~1"
-set "MODEL=%~2"
+rem One call per argument, so a flag in any position is recognised. Taking %1 as the
+rem disk number unconditionally sent "/verifyonly" to -DiskNumber (2026-09-22).
+set "DISK="
+set "MODEL="
 set "VERIFY=-FullVerify"
 set "MODE=apply"
-for %%A in (%*) do (
-    if /i "%%~A"=="/quick" set "VERIFY="
-    if /i "%%~A"=="/dryrun" set "MODE=dryrun"
-    if /i "%%~A"=="/verifyonly" set "MODE=verifyonly"
+set "BADARG="
+for %%A in (%*) do call :parsearg "%%~A"
+if defined BADARG (
+    echo Unknown argument: %BADARG%
+    echo Usage: wipe-disk.cmd [disk number] [model] [/quick] [/dryrun] [/verifyonly]
+    goto :end
 )
 set "MODELARG="
 if not "%MODEL%"=="" set "MODELARG=-ExpectModel %MODEL%"
@@ -58,6 +62,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Disk | Sort-Object N
 if "%DISK%"=="" set /p "DISK=Disk number to wipe - Ctrl+C or Enter to abort: "
 if "%DISK%"=="" (
     echo No disk number given. Nothing done.
+    goto :end
+)
+echo %DISK%|findstr /r "^[0-9][0-9]*$" >nul
+if errorlevel 1 (
+    echo Not a disk number: %DISK% - nothing done.
     goto :end
 )
 
@@ -81,7 +90,8 @@ if "%RC%"=="0" (
         echo Result: PASS - the disk read back as all zero. You can dispose of it. - exit code 0
     )
 ) else if "%RC%"=="1" (
-    echo Result: FAILED - non-zero data remains. Do NOT dispose of the drive yet. - exit code 1
+    echo Result: FAILED - the run did not end in PASS. Do NOT dispose of the drive yet. - exit code 1
+    echo Look for the last VERDICT line in the log; if there is none, the script itself failed to run.
 ) else if "%RC%"=="2" (
     echo Result: ABORTED - a guard or a confirmation stopped it. Nothing was written. - exit code 2
 ) else (
@@ -93,3 +103,35 @@ echo.
 echo Logs: %HERE%logs\
 echo You can close this window.
 endlocal
+goto :eof
+
+rem ---- one argument per call. Each test needs its own block: "if cond set X & goto"
+rem      would run the goto even when the test is false.
+:parsearg
+set "A=%~1"
+if /i "%A%"=="/quick" (
+    set "VERIFY="
+    goto :eof
+)
+if /i "%A%"=="/dryrun" (
+    set "MODE=dryrun"
+    goto :eof
+)
+if /i "%A%"=="/verifyonly" (
+    set "MODE=verifyonly"
+    goto :eof
+)
+if "%A:~0,1%"=="/" (
+    set "BADARG=%A%"
+    goto :eof
+)
+if not defined DISK (
+    set "DISK=%A%"
+    goto :eof
+)
+if not defined MODEL (
+    set "MODEL=%A%"
+    goto :eof
+)
+set "BADARG=%A%"
+goto :eof

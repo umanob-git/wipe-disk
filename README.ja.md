@@ -33,10 +33,14 @@ USB ドック（KURO-DACHI など）に挿した磁気 HDD を、廃棄前に**�
 ```
 wipe-disk.cmd 3                    Disk 3 を選択済みで開始
 wipe-disk.cmd 3 ST500DM002         型番に ST500DM002 を含むことも要求する
-wipe-disk.cmd 3 "" /quick          読み戻しを 64 か所サンプルにする（全セクタは既定）
-wipe-disk.cmd 3 "" /dryrun         何をするか表示するだけ（書かない）
-wipe-disk.cmd 3 "" /verifyonly     読み戻しだけ行う（書かない）
+wipe-disk.cmd 3 /quick             読み戻しを 64 か所サンプルにする（全セクタは既定）
+wipe-disk.cmd 3 /dryrun            何をするか表示するだけ（書かない）
+wipe-disk.cmd 3 /verifyonly        読み戻しだけ行う（書かない）
+wipe-disk.cmd /verifyonly          同上。ディスク番号は対話で聞く
 ```
+
+フラグはどの位置に書いてもよい。フラグでない最初の引数がディスク番号、2 つ目が型番（`3 "" /quick` も従来どおり通る）。
+フラグでも数字でもない引数は PowerShell を呼ぶ前に拒否する。
 
 所要時間の目安: 500 GB HDD で USB 3 なら上書き 1〜2 時間（実測 77 分 / 107 MB/s）＋全セクタ読み戻し 1〜2 時間。USB 2 なら各 4〜5 時間。途中でドックの電源や USB を触らない。
 
@@ -121,7 +125,12 @@ wipe-disk.cmd 3 "" /verifyonly     読み戻しだけ行う（書かない）
 - `wipe-disk.cmd` の `if ( ... )` ブロック内の `echo` に括弧 `( )` を書かない（`)` でブロックが閉じて、以降の行が無条件に実行される。2026-09-19 に実際に踏んだ）
 - PowerShell の `-f` の引数に割り算を書くときは必ず括弧で囲む。`"{2}" -f $a, $b / 1GB, $c` は `,` が `/` より強く結合し、
   `-f` に 2 引数しか渡らず実行時エラーになる（2026-09-19 に全セクタ検証が UNKNOWN になった原因）
+- `.cmd` で `if <条件> set "X=1" & goto :eof` と書くと、**条件が偽でも `goto` が走る**（`&` は `if` の評価より前にコマンドを切る）。
+  括弧で囲んだブロックにして、判定ごとに 1 ブロックにする
 - `0x80000000` のような 16 進リテラルは int32 の負数になる。`[uint32]2147483648` と 10 進で書く
+- **ドットソース（`. .\Get-DriveIdentity.ps1`）は、相手の `param()` を自分のスコープで実行する。**
+  同名の変数（`$DiskNumber`）が相手の既定値 `-1` で上書きされ、直後の `Get-Disk -Number -1` で止まった（2026-09-22、-Apply 実行時。
+  ディスクには未書き込み）。呼ぶ側で退避・復元する（`Wipe-Disk.ps1` の「drive identity」節）
 - IOCTL_ATA_PASS_THROUGH / SCSI ATA PASS-THROUGH を P/Invoke で直接送る実装は、管理者でも Win32 error 5 で失敗した
   （2026-09-19、内蔵 SATA でも USB でも）。原因未特定のまま残さず削除し、smartctl に任せている。再挑戦するなら原因を先に切り分ける
 - 判定ロジックを変えたら `tests\verify-test.ps1`（fails=0）と、ドライラン、「Disk 1（システム SSD）を渡して拒否されること」を確かめる

@@ -50,7 +50,7 @@ param(
     [string]$Operator = ''
 )
 
-$ToolVersion = '1.2 (2026-09-19)'
+$ToolVersion = '1.2.1 (2026-09-22)'
 $ErrorActionPreference = 'Stop'
 if (-not $LogPath) {
     $logDir = Join-Path $PSScriptRoot 'logs'
@@ -330,7 +330,12 @@ if (-not $Apply -and -not $VerifyOnly) {
 if (-not (Test-IsAdmin)) { Fail ($(if ($VerifyOnly) { '-VerifyOnly' } else { '-Apply' }) + " needs an elevated PowerShell (Run as administrator)") }
 
 # ---------------------------------------------------------------- drive identity (label serial) for the certificate
+# NOTE: dot-sourcing runs that script's own param() block in THIS scope, so its
+# "param([int]$DiskNumber = -1)" overwrites our $DiskNumber with -1 (seen 2026-09-22:
+# Get-Disk -Number -1 threw before the identity line was even logged). Save and restore it.
+$dn = $DiskNumber
 . (Join-Path $PSScriptRoot 'Get-DriveIdentity.ps1')
+$DiskNumber = $dn
 $identity = Get-DriveIdentity $DiskNumber
 Log "---- drive identity ----"
 Log ("identity source: {0} ({1})" -f $identity.Source, $identity.Tool)

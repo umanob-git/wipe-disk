@@ -45,10 +45,14 @@ Optional arguments:
 ```
 wipe-disk.cmd 3                    start with disk 3 preselected
 wipe-disk.cmd 3 ST500DM002         also require the model to contain ST500DM002
-wipe-disk.cmd 3 "" /quick          sampled read-back (64 places) instead of every sector
-wipe-disk.cmd 3 "" /dryrun         show what would happen, write nothing
-wipe-disk.cmd 3 "" /verifyonly     read back only, write nothing
+wipe-disk.cmd 3 /quick             sampled read-back (64 places) instead of every sector
+wipe-disk.cmd 3 /dryrun            show what would happen, write nothing
+wipe-disk.cmd 3 /verifyonly        read back only, write nothing
+wipe-disk.cmd /verifyonly          same, but ask for the disk number first
 ```
+
+Flags may appear in any position; the first non-flag argument is the disk number, the second is the model
+(`3 "" /quick` also still works). Anything that is not a flag and not a number is refused before PowerShell runs.
 
 Time: a 500 GB HDD on USB 3 takes 1–2 h to overwrite (measured: 77 min at 107 MB/s) plus 1–2 h to read every
 sector back. On USB 2 expect 4–5 h each. Do not touch the dock's power or cable while it runs.
@@ -138,7 +142,12 @@ Optional: smartmontools for the drive's own serial.
   lines run unconditionally.
 - Wrap divisions in parentheses inside `-f` arguments: `"{2}" -f $a, $b / 1GB, $c` binds `,` tighter than `/`, so `-f`
   receives two arguments and fails at run time.
+- In a `.cmd`, `if <cond> set "X=1" & goto :eof` runs the `goto` even when the condition is false — `&` splits
+  commands before the `if` is evaluated. Put the body in parentheses, one block per test.
 - Hex literals like `0x80000000` become negative int32; write `[uint32]2147483648`.
+- **Dot-sourcing runs the other script's `param()` block in the caller's scope.** `. .\Get-DriveIdentity.ps1` reset the
+  caller's `$DiskNumber` to that script's default `-1`, and the next `Get-Disk -Number -1` stopped the run (2026-09-22,
+  during `-Apply`; nothing had been written yet). Save and restore the variable around the dot-source.
 - Sending IOCTL_ATA_PASS_THROUGH / SCSI ATA PASS-THROUGH via P/Invoke failed with Win32 error 5 even when elevated
   (internal SATA and USB alike). Rather than ship an unexplained failure, that path was removed and the serial is read
   through smartctl. If you want to retry, find the cause first.

@@ -14,6 +14,8 @@
 
   Dot-source to get the function:   . .\Get-DriveIdentity.ps1 ; Get-DriveIdentity 3
   Run directly:                     .\Get-DriveIdentity.ps1 -DiskNumber 3
+  CAUTION: dot-sourcing runs the param() block below in the CALLER's scope, so a caller
+  that has its own $DiskNumber must save and restore it (Wipe-Disk.ps1 does).
 
   A failed pass-through experiment (IOCTL_ATA_PASS_THROUGH / SCSI ATA PASS-THROUGH via P/Invoke,
   Win32 error 5 even when elevated, 2026-09-19) was removed rather than guessed at.
